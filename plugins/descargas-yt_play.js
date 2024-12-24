@@ -1,120 +1,120 @@
+import Starlights from '@StarlightsTeam/Scraper'
+import yts from 'yt-search'
+import fetch from 'node-fetch'
 
-import axios from 'axios';
-import yts from 'yt-search';
+let handler = async (m, { conn, args, usedPrefix, text, command }) => {
+  let lister = ["mp3", "mp4", "mp3doc", "mp4doc"]
+  let [feature, ...query] = text.split(" ")
 
-// Handler principal
-let handler = async (m, { conn, text, usedPrefix, command }) => {
-  if (!text) {
-    await conn.sendMessage(m.chat, {
-      text: `⚠️ Necesitas proporcionar una consulta de búsqueda.\n\nEjemplo: *${usedPrefix}${command} Rosa pastel*`,
-    }, { quoted: m });
-    await conn.sendMessage(m.chat, { react: { text: '❗', key: m.key } });
-    return;
+  if (!lister.includes(feature)) {
+    return conn.reply(m.chat, '[ ✰ ] Ingresa el formato y el título de un video de *YouTube*.\n\n`» Ejemplo :`\n' + `> *${usedPrefix + command}* mp3 SUICIDAL-IDOL\n\n*» Formatos disponibles* :\n\n*${usedPrefix + command}* mp3\n*${usedPrefix + command}* mp3doc\n*${usedPrefix + command}* mp4\n*${usedPrefix + command}* mp4doc`, m, rcanal)
   }
 
+  if (!query.length) {
+    return conn.reply(m.chat, '[ ✰ ] Ingresa el título de un video o canción de *YouTube*.\n\n`» Ejemplo :`\n' + `> *${usedPrefix + command}* mp3 SUICIDAL-IDOL`, m, rcanal)
+  }
+
+  await m.react('🕓')
+  let res = await yts(query.join(" "))
+  let vid = res.videos[0]
+  let txt = '`乂 Y O U T U B E - P L A Y`\n\n'
+      txt += `	✩   *Título*: ${vid.title}\n`
+      txt += `	✩   *Duración*: ${vid.timestamp}\n`
+      txt += `	✩   *Visitas*: ${formatNumber(vid.views)}\n`
+      txt += `	✩   *Autor*: ${vid.author.name}\n`
+      txt += `	✩   *Publicado*: ${eYear(vid.ago)}\n`
+      txt += `	✩   *Url*: https://youtu.be/${vid.videoId}\n\n`
+      txt += `> *- ↻ El archivo se esta enviando espera un momento, soy lenta. . .*`
+
+  await conn.sendFile(m.chat, vid.thumbnail, 'thumbnail.jpg', txt, m, null, rcanal)
   try {
-    // Mensaje inicial para el proceso
-    let statusMessage = await conn.sendMessage(m.chat, { text: '🔎 Buscando video...' }, { quoted: m });
-    await conn.sendMessage(m.chat, { react: { text: '⏳', key: m.key } });
+  let data = feature.includes('mp3') ? await Starlights.ytmp3(vid.url) : await Starlights.ytmp4(vid.url)
+    let isDoc = feature.includes('doc')
+    let mimetype = feature.includes('mp3') ? 'audio/mpeg' : 'video/mp4'
+    let file = { url: data.dl_url }
 
-    // Buscar video
-    let videoData = await searchVideo(text);
-    if (!videoData) {
-      await conn.sendMessage(m.chat, {
-        text: '⚠️ No se encontraron resultados. Intenta con una búsqueda más específica.',
-      }, { quoted: m });
-      await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } });
-      return;
-    }
-
-    // Actualizar mensaje con los detalles del video
-    await updateStatusMessage(conn, statusMessage, videoData, '🎥 Video encontrado. Preparando descarga...');
-
-    // Descargar video
-    const { videoUrl, audioUrl } = await downloadMedia(videoData.url, text);
-    if (!videoUrl || !audioUrl) {
-      await conn.sendMessage(m.chat, {
-        text: '⚠️ No se pudo descargar el video o audio. Por favor inténtalo de nuevo.',
-      }, { quoted: m });
-      await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } });
-      return;
-    }
-
-    // Descargar y enviar video
-    await updateStatusMessage(conn, statusMessage, videoData, '⬇️ Descargando video...');
-    await sendVideoFile(conn, m, videoData, videoUrl);
-
-    // Descargar y enviar audio
-    await updateStatusMessage(conn, statusMessage, videoData, '⬇️ Descargando audio...');
-    await sendAudioFile(conn, m, videoData, audioUrl);
-
-    // Finalizar proceso
-    await updateStatusMessage(conn, statusMessage, videoData, '✅ Video y audio descargados con éxito.');
-    await conn.sendMessage(m.chat, { react: { text: '✅', key: m.key } });
-  } catch (error) {
-    console.error('Error:', error);
-    await conn.sendMessage(m.chat, {
-      text: '⚠️ Ocurrió un error inesperado. Intenta de nuevo más tarde.',
-    }, { quoted: m });
-    await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } });
+    await conn.sendMessage(m.chat, { [isDoc ? 'document' : feature.includes('mp3') ? 'audio' : 'video']: file, mimetype, fileName: `${data.title}.${feature.includes('mp3') ? 'mp3' : 'mp4'}` }, { quoted: m })
+    await m.react('✅')
+  } catch {
+    await m.react('✖️')
   }
-};
+ }
+handler.help = ['play2 <formato> <búsqueda>']
+handler.tags = ['downloader']
+handler.command = ['ytplay', 'play2']
+export default handler
 
-// Buscar video en YouTube
-async function searchVideo(query) {
-  let results = await yts(query);
-  return results.videos.length ? results.videos[0] : null;
-}
-
-// Actualizar estado del mensaje
-async function updateStatusMessage(conn, message, videoData, status) {
-  await conn.sendMessage(message.key.remoteJid, {
-    text: `🔰 *Admin-TK Downloader*\n\n🎵 *Título:* ${videoData.title}\n⏳ *Duración:* ${videoData.duration.timestamp}\n👁️ *Vistas:* ${videoData.views}\n📅 *Publicado:* ${videoData.ago}\n🌐 *Enlace:* ${videoData.url}\n\n🕒 *${status}*`,
-    edit: message.key,
-  });
-}
-
-// Descargar media usando la API
-async function downloadMedia(url, text) {
-  const qualities = ['1080p', '720p', '480p', '360p', '240p', '144p'];
-  for (let quality of qualities) {
-    try {
-      const response = await axios.get(`https://Ikygantengbangetanjay-api.hf.space/yt?query=${encodeURIComponent(text)}&quality=${quality}`);
-      const result = response.data.result;
-      if (!result) throw new Error('No media found.');
-      if (result.duration.seconds > 3600 || result.filesize > 200 * 1024 * 1024) throw new Error('Media too large.');
-      return {
-        videoUrl: result.download.video,
-        audioUrl: result.download.audio,
-      };
-    } catch (error) {
-      console.error(`Error downloading at ${quality}:`, error.message);
+function eYear(txt) {
+    if (!txt) {
+        return '×'
     }
-  }
-  throw new Error('No media could be downloaded.');
+    if (txt.includes('month ago')) {
+        var T = txt.replace("month ago", "").trim()
+        var L = 'hace '  + T + ' mes'
+        return L
+    }
+    if (txt.includes('months ago')) {
+        var T = txt.replace("months ago", "").trim()
+        var L = 'hace ' + T + ' meses'
+        return L
+    }
+    if (txt.includes('year ago')) {
+        var T = txt.replace("year ago", "").trim()
+        var L = 'hace ' + T + ' año'
+        return L
+    }
+    if (txt.includes('years ago')) {
+        var T = txt.replace("years ago", "").trim()
+        var L = 'hace ' + T + ' años'
+        return L
+    }
+    if (txt.includes('hour ago')) {
+        var T = txt.replace("hour ago", "").trim()
+        var L = 'hace ' + T + ' hora'
+        return L
+    }
+    if (txt.includes('hours ago')) {
+        var T = txt.replace("hours ago", "").trim()
+        var L = 'hace ' + T + ' horas'
+        return L
+    }
+    if (txt.includes('minute ago')) {
+        var T = txt.replace("minute ago", "").trim()
+        var L = 'hace ' + T + ' minuto'
+        return L
+    }
+    if (txt.includes('minutes ago')) {
+        var T = txt.replace("minutes ago", "").trim()
+        var L = 'hace ' + T + ' minutos'
+        return L
+    }
+    if (txt.includes('day ago')) {
+        var T = txt.replace("day ago", "").trim()
+        var L = 'hace ' + T + ' dia'
+        return L
+    }
+    if (txt.includes('days ago')) {
+        var T = txt.replace("days ago", "").trim()
+        var L = 'hace ' + T + ' dias'
+        return L
+    }
+    return txt
 }
 
-// Enviar video descargado
-async function sendVideoFile(conn, m, videoData, videoUrl) {
-  await conn.sendMessage(m.chat, {
-    video: { url: videoUrl },
-    mimetype: 'video/mp4',
-    fileName: `${videoData.title}.mp4`,
-    caption: `🎥 *${videoData.title}*\n📽 *Fuente:* ${videoData.url}`,
-  }, { quoted: m });
+function formatNumber(number) {
+  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
 }
 
-// Enviar audio descargado
-async function sendAudioFile(conn, m, videoData, audioUrl) {
-  await conn.sendMessage(m.chat, {
-    audio: { url: audioUrl },
-    mimetype: 'audio/mpeg',
-    fileName: `${videoData.title}.mp3`,
-  }, { quoted: m });
+function toNum(number) {
+    if (number >= 1000 && number < 1000000) {
+        return (number / 1000).toFixed(1) + 'k'
+    } else if (number >= 1000000) {
+        return (number / 1000000).toFixed(1) + 'M'
+    } else if (number <= -1000 && number > -1000000) {
+        return (number / 1000).toFixed(1) + 'k'
+    } else if (number <= -1000000) {
+        return (number / 1000000).toFixed(1) + 'M'
+    } else {
+        return number.toString()
+    }
 }
-
-handler.help = ['play2 *<consulta>*', 'playvideo *<consulta>*'];
-handler.tags = ['downloader'];
-handler.command = /^(play2|playvideo)$/i;
-
-export default handler;
