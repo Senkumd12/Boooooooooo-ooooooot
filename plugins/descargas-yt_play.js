@@ -30,7 +30,7 @@ const texto1 = `⌘━─━─≪ *YOUTUBE* ≫─━─━⌘
 ⌘━━─≪ ${gt} ≫─━━⌘
 
 > _*Descargando... Aguarde un momento por favor*_`.trim()
-await conn.sendFile(m.chat, yt_play[0].thumbnail, 'error.jpg', m, rcanal)
+await conn.sendFile(m.chat, yt_play[0].thumbnail, 'error.jpg', m)
   
 if (command == 'play' || command == 'audio') {
 try {    
