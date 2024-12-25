@@ -37,15 +37,6 @@ let handler = async (m, { conn, args }) => {
     // Obtener el video descargado como buffer
     const buffer = await res.buffer();
 
-    // Verificar el tamaño del video
-    const sizeInBytes = buffer.byteLength;
-    const sizeInMB = (sizeInBytes / 1024 / 1024).toFixed(2);
-    if (sizeInMB > 16) {
-      return m.reply(
-        `El video es demasiado grande para ser enviado por WhatsApp. Tamaño: ${sizeInMB} MB.`
-      );
-    }
-
     // Enviar el video como un buffer
     await conn.sendMessage(
       m.chat,
@@ -53,7 +44,7 @@ let handler = async (m, { conn, args }) => {
         video: buffer,
         mimetype: "video/mp4",
         fileName: `${video.title}.mp4`,
-        caption: `✰ *TÍTULO:* ${video.title}\n✰ *TAMAÑO:* ${sizeInMB} MB`,
+        caption: `✰ *TÍTULO:* ${video.title}`,
       },
       { quoted: m }
     );
@@ -66,6 +57,5 @@ let handler = async (m, { conn, args }) => {
 handler.help = ["playvideo <enlace/título>"];
 handler.tags = ["downloader"];
 handler.command = /^(playvideo|ytvideo)$/i;
-handler.limit = true;
 
 export default handler;
