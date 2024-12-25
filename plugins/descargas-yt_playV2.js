@@ -1,113 +1,76 @@
-import fetch from 'node-fetch'
-import yts from 'yt-search'
+/**
+© ZENITH
+ᘎ https://whatsapp.com/channel/0029Vai9MMj5vKABWrYzIJ2Z
+*/
 
-let handler = async (m, { conn: star, command, args, text, usedPrefix }) => {
-  if (!text) return star.reply(m.chat, '🍭 Ingresa el título de un video o canción de YouTube.', m)
-    await m.react('🕓')
-    try {
-    let res = await search(args.join(" "))
-    let img = await (await fetch(`${res[0].image}`)).buffer()
-    let txt = 'ゲ◜៹ YouTube Search & Downloader ៹◞ゲ\n\n'
-       txt += `› Título : ${res[0].title}\n`
-       txt += `› Duración : ${secondString(res[0].duration.seconds)}\n`
-       txt += `› Publicado : ${eYear(res[0].ago)}\n`
-       txt += `› Canal : ${res[0].author.name || 'Desconocido'}\n`
-       txt += `› Url : ${'https://youtu.be/' + res[0].videoId}\n\n`
-       txt += `✧ responde a este mensaje con *Video* o *Audio*.`
-await star.sendFile(m.chat, img, 'thumbnail.jpg', txt, m)
-await m.react('✅')
-} catch {
-await m.react('✖️')
-}}
-handler.help = ['play *<búsqueda>*']
-handler.tags = ['downloader']
-handler.command = ['play']
-//handler.register = true 
-export default handler
+import fetch from "node-fetch";
+import yts from "yt-search";
 
-async function search(query, options = {}) {
-  let search = await yts.search({ query, hl: "es", gl: "ES", ...options })
-  return search.videos
-}
+let handler = async (m, { conn, args }) => {
+  try {
+    const query = args.join(" ") || m.quoted?.text || m.quoted?.caption || m.quoted?.description || "";
+    if (!query.trim()) return m.reply("Por favor, ingresa una palabra clave para buscar.");
 
-function MilesNumber(number) {
-  let exp = /(\d)(?=(\d{3})+(?!\d))/g
-  let rep = "$1."
-  let arr = number.toString().split(".")
-  arr[0] = arr[0].replace(exp, rep)
-  return arr[1] ? arr.join(".") : arr[0]
-}
+    await m.reply("Buscando, por favor espera...");
 
-function secondString(seconds) {
-  seconds = Number(seconds);
-  const d = Math.floor(seconds / (3600 * 24));
-  const h = Math.floor((seconds % (3600 * 24)) / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  const dDisplay = d > 0 ? d + (d == 1 ? ' Día, ' : ' Días, ') : '';
-  const hDisplay = h > 0 ? h + (h == 1 ? ' Hora, ' : ' Horas, ') : '';
-  const mDisplay = m > 0 ? m + (m == 1 ? ' Minuto, ' : ' Minutos, ') : '';
-  const sDisplay = s > 0 ? s + (s == 1 ? ' Segundo' : ' Segundos') : '';
-  return dDisplay + hDisplay + mDisplay + sDisplay;
-}
+    const res = await yts(query);
+    const vid = res.videos[0];
+    if (!vid) return m.reply("No se encontró ningún video. Prueba con otra palabra clave.");
 
-function sNum(num) {
-    return new Intl.NumberFormat('en-GB', { notation: "compact", compactDisplay: "short" }).format(num)
-}
+    const { title, thumbnail, timestamp, views, ago, url } = vid;
+    const formattedViews = parseInt(views).toLocaleString("id-ID") + " vistas";
+    const captvid = `*Título:* ${title}\n*Duración:* ${timestamp}\n*Vistas:* ${formattedViews}\n*Subido hace:* ${ago}\n*Enlace:* ${url}`;
 
-function eYear(txt) {
-    if (!txt) {
-        return '×'
+    // Descargar la miniatura del video
+    const ytthumb = (await conn.getFile(thumbnail))?.data;
+
+    const infoReply = {
+      contextInfo: {
+        externalAdReply: {
+          body: "Descargando el resultado, por favor espera...",
+          mediaType: 1,
+          mediaUrl: url,
+          previewType: 0,
+          renderLargerThumbnail: true,
+          sourceUrl: url,
+          thumbnail: ytthumb,
+          title: "Y O U T U B E - P L A Y",
+        },
+      },
+    };
+
+    await conn.reply(m.chat, captvid, m, infoReply);
+
+    // Realizar la solicitud al API de descarga
+    const apiRes = await fetch(`https://api-rin-tohsaka.vercel.app/download/ytmp3?url=${url}`);
+    const json = await apiRes.json();
+
+    if (json.status) {
+      const { result } = json;
+      const { download } = result;
+
+      await conn.sendMessage(
+        m.chat,
+        {
+          audio: { url: download.url },
+          caption: `*Título:* ${title}\n*Tamaño del archivo:* ${download.size}\n*Calidad:* ${download.quality}`,
+          mimetype: "audio/mpeg",
+          contextInfo: infoReply.contextInfo,
+        },
+        { quoted: m }
+      );
+    } else {
+      await m.reply("No se pudo descargar el audio. Intenta nuevamente.");
     }
-    if (txt.includes('month ago')) {
-        var T = txt.replace("month ago", "").trim()
-        var L = 'hace '  + T + ' mes'
-        return L
-    }
-    if (txt.includes('months ago')) {
-        var T = txt.replace("months ago", "").trim()
-        var L = 'hace ' + T + ' meses'
-        return L
-    }
-    if (txt.includes('year ago')) {
-        var T = txt.replace("year ago", "").trim()
-        var L = 'hace ' + T + ' año'
-        return L
-    }
-    if (txt.includes('years ago')) {
-        var T = txt.replace("years ago", "").trim()
-        var L = 'hace ' + T + ' años'
-        return L
-    }
-    if (txt.includes('hour ago')) {
-        var T = txt.replace("hour ago", "").trim()
-        var L = 'hace ' + T + ' hora'
-        return L
-    }
-    if (txt.includes('hours ago')) {
-        var T = txt.replace("hours ago", "").trim()
-        var L = 'hace ' + T + ' horas'
-        return L
-    }
-    if (txt.includes('minute ago')) {
-        var T = txt.replace("minute ago", "").trim()
-        var L = 'hace ' + T + ' minuto'
-        return L
-    }
-    if (txt.includes('minutes ago')) {
-        var T = txt.replace("minutes ago", "").trim()
-        var L = 'hace ' + T + ' minutos'
-        return L
-    }
-    if (txt.includes('day ago')) {
-        var T = txt.replace("day ago", "").trim()
-        var L = 'hace ' + T + ' dia'
-        return L
-    }
-    if (txt.includes('days ago')) {
-        var T = txt.replace("days ago", "").trim()
-        var L = 'hace ' + T + ' dias'
-        return L
-    }
-    return txt
-}
+  } catch (e) {
+    console.error(e);
+    await m.reply("Ocurrió un error al procesar tu solicitud. Intenta nuevamente.");
+  }
+};
+
+handler.help = ["play <término de búsqueda>"];
+handler.tags = ["downloader"];
+handler.command = /^(play|ytplay)$/i;
+handler.limit = true;
+
+export default handler;
