@@ -1,158 +1,113 @@
-import fetch from 'node-fetch';
-import yts from 'yt-search';
-import ytdl from 'ytdl-core';
-import axios from 'axios';
-const handler = async (m, {command, usedPrefix, conn, text}) => {
-if (!text) throw `${mg}${mid.smsMalused4}\n*${usedPrefix + command} Billie Eilish - Bellyache*`
-try {
-if (command == 'play.1') {
-conn.reply(m.chat, lenguajeGB['smsAvisoEG']() + mid.smsAud, m, { contextInfo: { externalAdReply :{ mediaUrl: null, mediaType: 1, description: null, title: wm, body: '😻 𝗦𝘂𝗽𝗲𝗿 𝗚𝗮𝘁𝗮𝗕𝗼𝘁-𝗠𝗗 - 𝗪𝗵𝗮𝘁𝘀𝗔𝗽𝗽', previewType: 0, thumbnail: gataImg, sourceUrl: accountsgb }}}) 
-try { 
-const mediaa = await ytPlay(text);
-const audiocore = mediaa.result2?.[0]?.audio || mediaa.result2?.[1]?.audio || mediaa.result2?.[2]?.audio || null;
-const aa = await conn.sendMessage(m.chat, {audio: {url: audiocore}, fileName: `error.mp3`, mimetype: 'audio/mp4'}, {quoted: m});
-if (!aa) {
-throw new Error();
-}} catch {
-const res = await fetch(`https://api.lolhuman.xyz/api/ytplay2?apikey=${lolkeysapi}&query=${text}`);
-const json = await res.json();
-const aa_1 = await conn.sendMessage(m.chat, {audio: {url: json.result.audio}, fileName: `error.mp3`, mimetype: 'audio/mp4'}, {quoted: m});
-if (!aa_1) aa_1 = await conn.sendFile(m.chat, json.result.audio, 'error.mp3', null, m, false, {mimetype: 'audio/mp4'});
+import fetch from 'node-fetch'
+import yts from 'yt-search'
+
+let handler = async (m, { conn: star, command, args, text, usedPrefix }) => {
+  if (!text) return star.reply(m.chat, '🍭 Ingresa el título de un video o canción de YouTube.', m)
+    await m.react('🕓')
+    try {
+    let res = await search(args.join(" "))
+    let img = await (await fetch(`${res[0].image}`)).buffer()
+    let txt = 'ゲ◜៹ YouTube Search & Downloader ៹◞ゲ\n\n'
+       txt += `› Título : ${res[0].title}\n`
+       txt += `› Duración : ${secondString(res[0].duration.seconds)}\n`
+       txt += `› Publicado : ${eYear(res[0].ago)}\n`
+       txt += `› Canal : ${res[0].author.name || 'Desconocido'}\n`
+       txt += `› Url : ${'https://youtu.be/' + res[0].videoId}\n\n`
+       txt += `✧ responde a este mensaje con *Video* o *Audio*.`
+await star.sendFile(m.chat, img, 'thumbnail.jpg', txt, m)
+await m.react('✅')
+} catch {
+await m.react('✖️')
 }}
-if (command == 'play.2') {
-conn.reply(m.chat, lenguajeGB['smsAvisoEG']() + mid.smsVid, m, {contextInfo: { externalAdReply :{ mediaUrl: null, mediaType: 1, description: null, title: wm, body: '😻 𝗦𝘂𝗽𝗲𝗿 𝗚𝗮𝘁𝗮𝗕𝗼𝘁-𝗠𝗗 - 𝗪𝗵𝗮𝘁𝘀𝗔𝗽𝗽', previewType: 0, thumbnail: gataImg, sourceUrl: accountsgb }}}) 
-try {
-const mediaa = await ytPlayVid(text);
-const aa_2 = await conn.sendMessage(m.chat, {video: {url: mediaa.result}, fileName: `error.mp4`, caption: `${wm}`, thumbnail: mediaa.thumb, mimetype: 'video/mp4'}, {quoted: m});
-if (!aa_2) {
-throw new Error();
-}} catch {
-const res = await fetch(`https://api.lolhuman.xyz/api/ytplay2?apikey=${lolkeysapi}&query=${text}`);
-const json = await res.json();
-await conn.sendFile(m.chat, json.result.video, 'error.mp4', `${wm}`, m);
-}}} catch (e) {
-await conn.reply(m.chat, `${lenguajeGB['smsMalError3']()}#report ${lenguajeGB['smsMensError2']()} ${usedPrefix + command}\n\n${wm}`, m)
-console.log(`❗❗ ${lenguajeGB['smsMensError2']()} ${usedPrefix + command} ❗❗`)
-console.log(e)
-handler.limit = 0 //No gastada limite si fallas
-}}
-handler.help = ['play.1' , 'play.2'].map(v => v + ' <texto>')
+handler.help = ['play *<búsqueda>*']
 handler.tags = ['downloader']
-handler.command = ['play.1', 'play.2']
-handler.limit = 1
+handler.command = ['play']
+//handler.register = true 
 export default handler
 
-function bytesToSize(bytes) {
-return new Promise((resolve, reject) => {
-const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-if (bytes === 0) return 'n/a';
-const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)), 10);
-if (i === 0) resolve(`${bytes} ${sizes[i]}`);
-resolve(`${(bytes / (1024 ** i)).toFixed(1)} ${sizes[i]}`);
-})}
-
-async function ytMp3(url) {
-return new Promise((resolve, reject) => {
-ytdl.getInfo(url).then(async (getUrl) => {
-const result = [];
-for (let i = 0; i < getUrl.formats.length; i++) {
-const item = getUrl.formats[i];
-if (item.mimeType == 'audio/webm; codecs=\"opus\"') {
-const {contentLength} = item;
-const bytes = await bytesToSize(contentLength);
-result[i] = {audio: item.url, size: bytes};
-}}
-const resultFix = result.filter((x) => x.audio != undefined && x.size != undefined);
-const tiny = await axios.get(`https://tinyurl.com/api-create.php?url=${resultFix[0].audio}`);
-const tinyUrl = tiny.data;
-const title = getUrl.videoDetails.title;
-const thumb = getUrl.player_response.microformat.playerMicroformatRenderer.thumbnail.thumbnails[0].url;
-resolve({title, result: tinyUrl, result2: resultFix, thumb});
-}).catch(reject);
-})}
-
-async function ytMp4(url) {
-return new Promise(async (resolve, reject) => {
-ytdl.getInfo(url).then(async (getUrl) => {
-const result = [];
-for (let i = 0; i < getUrl.formats.length; i++) {
-const item = getUrl.formats[i];
-if (item.container == 'mp4' && item.hasVideo == true && item.hasAudio == true) {
-const {qualityLabel, contentLength} = item;
-const bytes = await bytesToSize(contentLength);
-result[i] = {video: item.url, quality: qualityLabel, size: bytes};
-}}
-const resultFix = result.filter((x) => x.video != undefined && x.size != undefined && x.quality != undefined);
-const tiny = await axios.get(`https://tinyurl.com/api-create.php?url=${resultFix[0].video}`);
-const tinyUrl = tiny.data;
-const title = getUrl.videoDetails.title;
-const thumb = getUrl.player_response.microformat.playerMicroformatRenderer.thumbnail.thumbnails[0].url;
-resolve({title, result: tinyUrl, rersult2: resultFix[0].video, thumb});
-}).catch(reject);
-})}
-
-async function ytPlay(query) {
-return new Promise((resolve, reject) => {
-yts(query).then(async (getData) => {
-const result = getData.videos.slice( 0, 5 );
-const url = [];
-for (let i = 0; i < result.length; i++) {
-url.push(result[i].url);
+async function search(query, options = {}) {
+  let search = await yts.search({ query, hl: "es", gl: "ES", ...options })
+  return search.videos
 }
-const random = url[0];
-const getAudio = await ytMp3(random);
-resolve(getAudio);
-}).catch(reject);
-})}
 
-async function ytPlayVid(query) {
-return new Promise((resolve, reject) => {
-yts(query).then(async (getData) => {
-const result = getData.videos.slice( 0, 5 );
-const url = [];
-for (let i = 0; i < result.length; i++) {
-url.push(result[i].url);
+function MilesNumber(number) {
+  let exp = /(\d)(?=(\d{3})+(?!\d))/g
+  let rep = "$1."
+  let arr = number.toString().split(".")
+  arr[0] = arr[0].replace(exp, rep)
+  return arr[1] ? arr.join(".") : arr[0]
 }
-const random = url[0];
-const getVideo = await ytMp4(random);
-resolve(getVideo);
-}).catch(reject);
-})}
 
-/*import fs from 'fs'
-import fetch from 'node-fetch'
-let handler = async (m, {command, conn, text, usedPrefix }) => {
-if (!text) throw `${mg}𝙀𝙎𝘾𝙍𝙄𝘽𝘼 𝙀𝙇 𝙉𝙊𝙈𝘽𝙍𝙀 𝙊 𝙏𝙄𝙏𝙐𝙇𝙊\n𝙀𝙅𝙀𝙈𝙋𝙇𝙊\n*${usedPrefix + command} Billie Eilish - Bellyache*\n\n𝙒𝙍𝙄𝙏𝙀 𝙏𝙃𝙀 𝙉𝘼𝙈𝙀 𝙊𝙍 𝙏𝙄𝙏𝙇𝙀\n𝙀𝙓𝘼𝙈𝙋𝙇𝙀\n*${usedPrefix + command} Billie Eilish - Bellyache*`
-try {
-if (command == 'play.1') {
-conn.reply(m.chat, `${eg}𝙀𝙎𝙋𝙀𝙍𝙀 𝙐𝙉 𝙈𝙊𝙈𝙀𝙉𝙏𝙊 𝙀𝙇 𝘼𝙐𝘿𝙄𝙊 𝙋𝙊𝙍 𝙁𝘼𝙑𝙊𝙍\n\n𝙒𝘼𝙄𝙏 𝘼 𝙈𝙊𝙈𝙀𝙉𝙏 𝙁𝙊𝙍 𝙏𝙃𝙀 𝘼𝙐𝘿𝙄𝙊 𝙋𝙇𝙀𝘼𝙎𝙀`, m, {
-contextInfo: { externalAdReply :{ mediaUrl: null, mediaType: 1, description: null, 
-title: '𝙂𝙖𝙩𝙖𝘽𝙤𝙩-𝙈𝘿 | 𝙂𝙖𝙩𝙖 𝘿𝙞𝙤𝙨',
-body: 'Super Bot WhatsApp',         
-previewType: 0, thumbnail: fs.readFileSync("./media/menus/Menu3.jpg"),
-sourceUrl: `https://github.com/GataNina-Li/GataBot-MD`}}}) 
-  
-let res = await fetch("https://violetics.pw/api/media/youtube-play?apikey=beta&query="+text)
-//https://leyscoders-api.herokuapp.com/api/playmp3?q=lebih%20baik%20darinya&apikey=Your_Key
-  //("https://api.dhamzxploit.my.id/api/ytplaymp3?text="+text)
-let json = await res.json()
-conn.sendFile(m.chat, json.result.url, 'error.mp3', null, m, false, { mimetype: 'audio/mp4' })}
-if (command == 'play.2') {
-conn.reply(m.chat, `${eg}𝙀𝙎𝙋𝙀𝙍𝙀 𝙐𝙉 𝙈𝙊𝙈𝙀𝙉𝙏𝙊 𝙀𝙇 𝙑𝙄𝘿𝙀𝙊 𝙋𝙊𝙍 𝙁𝘼𝙑𝙊𝙍\n\n𝙒𝘼𝙄𝙏 𝘼 𝙈𝙊𝙈𝙀𝙉𝙏 𝙁𝙊𝙍 𝙏𝙃𝙀 𝙑𝙄𝘿𝙀𝙊 𝙋𝙇𝙀𝘼𝙎𝙀`, m, {
-contextInfo: { externalAdReply :{ mediaUrl: null, mediaType: 1, description: null, 
-title: '𝙂𝙖𝙩𝙖𝘽𝙤𝙩-𝙈𝘿 | 𝙂𝙖𝙩𝙖 𝘿𝙞𝙤𝙨',
-body: 'Super Bot WhatsApp',         
-previewType: 0, thumbnail: fs.readFileSync("./media/menus/Menu3.jpg"),
-sourceUrl: `https://github.com/GataNina-Li/GataBot-MD`}}})
-  
-let res = await fetch("https://violetics.pw/api/media/youtube-play?apikey=beta&query="+text) 
-let json = await res.json()
-conn.sendFile(m.chat, json.result.url, 'error.mp4', `${wm}`, m)}
-}catch(e){
-m.reply(`${fg}𝙄𝙉𝙏𝙀𝙉𝙏𝙀 𝘿𝙀 𝙉𝙐𝙀𝙑𝙊\n𝙏𝙍𝙔 𝘼𝙂𝘼𝙄𝙉`)
-console.log(e)
-}}
-handler.help = ['play.1' , 'play.2'].map(v => v + ' <texto>')
-handler.tags = ['downloader']
-handler.command = ['play.1', 'play.2']
-export default handler*/
+function secondString(seconds) {
+  seconds = Number(seconds);
+  const d = Math.floor(seconds / (3600 * 24));
+  const h = Math.floor((seconds % (3600 * 24)) / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  const dDisplay = d > 0 ? d + (d == 1 ? ' Día, ' : ' Días, ') : '';
+  const hDisplay = h > 0 ? h + (h == 1 ? ' Hora, ' : ' Horas, ') : '';
+  const mDisplay = m > 0 ? m + (m == 1 ? ' Minuto, ' : ' Minutos, ') : '';
+  const sDisplay = s > 0 ? s + (s == 1 ? ' Segundo' : ' Segundos') : '';
+  return dDisplay + hDisplay + mDisplay + sDisplay;
+}
+
+function sNum(num) {
+    return new Intl.NumberFormat('en-GB', { notation: "compact", compactDisplay: "short" }).format(num)
+}
+
+function eYear(txt) {
+    if (!txt) {
+        return '×'
+    }
+    if (txt.includes('month ago')) {
+        var T = txt.replace("month ago", "").trim()
+        var L = 'hace '  + T + ' mes'
+        return L
+    }
+    if (txt.includes('months ago')) {
+        var T = txt.replace("months ago", "").trim()
+        var L = 'hace ' + T + ' meses'
+        return L
+    }
+    if (txt.includes('year ago')) {
+        var T = txt.replace("year ago", "").trim()
+        var L = 'hace ' + T + ' año'
+        return L
+    }
+    if (txt.includes('years ago')) {
+        var T = txt.replace("years ago", "").trim()
+        var L = 'hace ' + T + ' años'
+        return L
+    }
+    if (txt.includes('hour ago')) {
+        var T = txt.replace("hour ago", "").trim()
+        var L = 'hace ' + T + ' hora'
+        return L
+    }
+    if (txt.includes('hours ago')) {
+        var T = txt.replace("hours ago", "").trim()
+        var L = 'hace ' + T + ' horas'
+        return L
+    }
+    if (txt.includes('minute ago')) {
+        var T = txt.replace("minute ago", "").trim()
+        var L = 'hace ' + T + ' minuto'
+        return L
+    }
+    if (txt.includes('minutes ago')) {
+        var T = txt.replace("minutes ago", "").trim()
+        var L = 'hace ' + T + ' minutos'
+        return L
+    }
+    if (txt.includes('day ago')) {
+        var T = txt.replace("day ago", "").trim()
+        var L = 'hace ' + T + ' dia'
+        return L
+    }
+    if (txt.includes('days ago')) {
+        var T = txt.replace("days ago", "").trim()
+        var L = 'hace ' + T + ' dias'
+        return L
+    }
+    return txt
+}
