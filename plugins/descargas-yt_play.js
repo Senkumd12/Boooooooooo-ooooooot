@@ -45,12 +45,22 @@ let handler = async (m, { conn, args }) => {
         mimetype: 'video/mp4', // Ajusta el mimetype según el formato del video
         fileName: `${video.title}.mp4`, // Ajusta el nombre del archivo
         caption: `✰ *TÍTULO:* ${video.title}\n✰ *TAMAÑO:* ${sizeInMB} MB`,
+        ptt: true // Para enviar como audio si es necesario
       },
       { quoted: m }
     );
   } catch (e) {
     console.error(e);
     await m.reply(`「 ✰ 」Error al descargar el video: ${e.message}`);
+
+    // Manejo de errores más específico (opcional)
+    if (e.message.includes('NetworkError')) {
+      await m.reply('Error de red. Por favor, verifica tu conexión a internet.');
+    } else if (e.message.includes('Timeout')) {
+      await m.reply('Tiempo de espera agotado. Intenta nuevamente más tarde.');
+    } else {
+      // Manejar otros tipos de errores
+    }
   }
 };
 
