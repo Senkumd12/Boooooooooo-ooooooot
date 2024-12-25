@@ -27,7 +27,7 @@ let handler = async (m, { conn, args }) => {
     );
 
     // Descargar el video usando la API
-    const apiUrl = `https://deliriussapi-oficial.vercel.app/download/ytmp4v2?url=${video.url}`;
+    const apiUrl = `https://api-rin-tohsaka.vercel.app/download/ytmp4?url=$${video.url}`;
     const res = await fetch(apiUrl);
 
     if (!res.ok) {
