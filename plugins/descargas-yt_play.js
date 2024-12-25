@@ -27,9 +27,7 @@ let handler = async (m, { conn, args }) => {
     );
 
     // Descargar el video usando la API
-    const apiUrl = `https://api-rin-tohsaka.vercel.app/download/ytmp4?url=${encodeURIComponent(
-      video.url
-    )}&quality=720`;
+    const apiUrl = `https://api-rin-tohsaka.vercel.app/download/ytmp4?url=${video.url}`;
     const res = await fetch(apiUrl);
 
     if (!res.ok) {
