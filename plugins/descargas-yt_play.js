@@ -27,7 +27,7 @@ let handler = async (m, { conn, args }) => {
     );
 
     // Descargar el video usando la API
-    const apiUrl = `https://deliriussapi-oficial.vercel.app/download/ytmp4v2?url=${video.url}`; // Ajusta la calidad si lo deseas
+    const apiUrl = `https://apis-starlights-team.koyeb.app/starlight/youtube-mp4?url=${video.url}`; // Ajusta la calidad si lo deseas
     const res = await fetch(apiUrl);
 
     // Obtener el video descargado en un buffer
