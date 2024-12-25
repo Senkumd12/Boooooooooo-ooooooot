@@ -17,9 +17,9 @@ let handler = async (m, { conn, args }) => {
     }
 
     const video = search.videos[0];
-    const infoMessage = `「 ✰ 」 *RESULTADOS ENCONTRADOS:*\n> BUSQUEDA: ${text}\n\n✰ *TÍTULO:*\n> ${video.title}\n\`\`\`----------\`\`\`\n✰ *VISTAS:*\n> ${video.views}\n\`\`\`----------\`\`\`\n✰ *DURACIÓN:*\n> ${video.duration}\n\`\`\`----------\`\`\`\n✰ *SUBIDO:*\n> ${video.ago}\n\`\`\`----------\`\`\`\n✰ *URL:*\n> ${video.url}\n\`\`\`----------\`\`\`\n\n\`ENVIANDO VIDEO...\``;
+    const infoMessage = `「 ✰ 」 *RESULTADOS ENCONTRADOS:*\n> BUSQUEDA: ${text}\n\n✰ *TÍTULO:*\n> ${video.title}\n\`\`\`----------\`\`\`\n✰ *VISTAS:*\n> ${video.views}\n\`\`\`----------\`\`\`\n✰ *DURACIÓN:*\n> ${video.timestamp}\n\`\`\`----------\`\`\`\n✰ *SUBIDO:*\n> ${video.ago}\n\`\`\`----------\`\`\`\n✰ *URL:*\n> ${video.url}\n\`\`\`----------\`\`\`\n\n\`ENVIANDO VIDEO...\``;
 
-    // Enviar la información del video
+    // Enviar información del video
     await conn.sendMessage(
       m.chat,
       { image: { url: video.thumbnail }, caption: infoMessage },
@@ -27,40 +27,41 @@ let handler = async (m, { conn, args }) => {
     );
 
     // Descargar el video usando la API
-    const apiUrl = `https://api-rin-tohsaka.vercel.app/download/ytmp4?url=${video.url}&quality=360`; // Ajusta la calidad si lo deseas
+    const apiUrl = `https://api-rin-tohsaka.vercel.app/download/ytmp4?url=${encodeURIComponent(
+      video.url
+    )}&quality=360`;
     const res = await fetch(apiUrl);
 
-    // Obtener el video descargado en un buffer
+    if (!res.ok) {
+      throw new Error(`Error al descargar el video: ${res.statusText}`);
+    }
+
+    // Obtener el video descargado como buffer
     const buffer = await res.buffer();
 
-    // Obtener el tamaño del video en megabytes
+    // Verificar el tamaño del video
     const sizeInBytes = buffer.byteLength;
     const sizeInMB = (sizeInBytes / 1024 / 1024).toFixed(2);
+    if (sizeInMB > 16) {
+      return m.reply(
+        `El video es demasiado grande para ser enviado por WhatsApp. Tamaño: ${sizeInMB} MB.`
+      );
+    }
 
     // Enviar el video como un buffer
     await conn.sendMessage(
       m.chat,
       {
         video: buffer,
-        mimetype: 'video/mp4', // Ajusta el mimetype según el formato del video
-        fileName: `${video.title}.mp4`, // Ajusta el nombre del archivo
+        mimetype: "video/mp4",
+        fileName: `${video.title}.mp4`,
         caption: `✰ *TÍTULO:* ${video.title}\n✰ *TAMAÑO:* ${sizeInMB} MB`,
-        ptt: true // Para enviar como audio si es necesario
       },
       { quoted: m }
     );
   } catch (e) {
     console.error(e);
-    await m.reply(`「 ✰ 」Error al descargar el video: ${e.message}`);
-
-    // Manejo de errores más específico (opcional)
-    if (e.message.includes('NetworkError')) {
-      await m.reply('Error de red. Por favor, verifica tu conexión a internet.');
-    } else if (e.message.includes('Timeout')) {
-      await m.reply('Tiempo de espera agotado. Intenta nuevamente más tarde.');
-    } else {
-      // Manejar otros tipos de errores
-    }
+    m.reply(`「 ✰ 」Error al descargar el video: ${e.message}`);
   }
 };
 
