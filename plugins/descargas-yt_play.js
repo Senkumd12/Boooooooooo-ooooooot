@@ -1,38 +1,62 @@
-import Starlights from '@StarlightsTeam/Scraper'
-let limit = 300
-let handler = async (m, { conn, text, isPrems, isOwner, usedPrefix, command }) => {
-if (!m.quoted) return conn.reply(m.chat, `🍭 Etiqueta el mensaje que contenga el resultado de YouTube Play.`, m).then(_ => m.react('✖️'))
-if (!m.quoted.text.includes("ゲ◜៹ YouTube Search & Downloader ៹◞ゲ")) return conn.reply(m.chat, `[ ✰ ] Etiqueta el mensaje que contenga el resultado de YouTube Play.`, m).then(_ => m.react('✖️'))
-let urls = m.quoted.text.match(new RegExp(/(?:https?:\/\/)?(?:youtu\.be\/|(?:www\.|m\.)?youtube\.com\/(?:watch|v|embed|shorts)(?:\.php)?(?:\?.*v=|\/))([a-zA-Z0-9\_-]+)/, 'gi'))
-if (!urls) return conn.reply(m.chat, `🍭 Resultado no Encontrado.`, m).then(_ => m.react('✖️'))
-if (urls.length < text) return conn.reply(m.chat, `🍭 Resultado no Encontrado.`, m).then(_ => m.react('✖️'))
-let user = global.db.data.users[m.sender]
+import fetch from "node-fetch";
+import yts from "yt-search";
 
-await m.react('🕓')
-try {
-let v = urls[0]
-let { title, duration, size, thumbnail, dl_url } = await Starlights.ytmp4v2(v)
+let handler = async (m, { conn, args }) => {
+  try {
+    const text = args.join(" ");
+    if (!text.trim()) {
+      return m.reply(
+        `「 ✰ 」INGRESA UN *ENLACE* O *TÍTULO* DEL *VIDEO* QUE DESEA DESCARGAR DE *YOUTUBE*\n\n*• EJEMPLO:*\n> .playvideo Never Gonna Give You Up`
+      );
+    }
 
-if (size.split('MB')[0] >= limit) return conn.reply(m.chat, `🍭 El archivo pesa mas de ${limit} MB, se canceló la Descarga.`, m).then(_ => m.react('✖️'))
+    // Buscar el video en YouTube
+    const search = await yts(text);
+    if (!search.videos.length) {
+      return m.reply("No se encontraron resultados para tu búsqueda.");
+    }
 
-await conn.sendFile(m.chat, dl_url, title + '.mp4', `Título : ${title}`, m, false, { asDocument: user.useDocument })
-await m.react('✅')
-} catch {
-try {
-let v = urls[0]
-let { title, size, quality, thumbnail, dl_url } = await Starlights.ytmp4(v)
+    const video = search.videos[0];
+    const infoMessage = `「 ✰ 」 *RESULTADOS ENCONTRADOS:*\n> BUSQUEDA: ${text}\n\n✰ *TÍTULO:*\n> ${video.title}\n\`\`\`----------\`\`\`\n✰ *VISTAS:*\n> ${video.views}\n\`\`\`----------\`\`\`\n✰ *DURACIÓN:*\n> ${video.duration}\n\`\`\`----------\`\`\`\n✰ *SUBIDO:*\n> ${video.ago}\n\`\`\`----------\`\`\`\n✰ *URL:*\n> ${video.url}\n\`\`\`----------\`\`\`\n\n\`ENVIANDO VIDEO...\``;
 
-if (size.split('MB')[0] >= limit) return m.reply(`🍭 El archivo pesa mas de ${limit} MB, se canceló la Descarga.`).then(_ => m.react('✖️'))
+    // Enviar la información del video
+    await conn.sendMessage(
+      m.chat,
+      { image: { url: video.thumbnail }, caption: infoMessage },
+      { quoted: m }
+    );
 
-await conn.sendFile(m.chat, dl_url, title + '.mp4', `*Título* : ${title}\n*Calidad* : ${quality}`, m, false, { asDocument: user.useDocument })
-await m.react('✅')
-} catch {
-await m.react('✖️')
-}}}
-handler.help = ['Video']
-handler.tags = ['downloader']
-handler.customPrefix = /^(playvideo|video|vídeo|Vídeo)/
-handler.command = new RegExp
-//handler.limit = 1
+    // Descargar el video usando la API
+    const apiUrl = `https://api-rin-tohsaka.vercel.app/download/ytmp4?url=${video.url}&quality=360`; // Ajusta la calidad si lo deseas
+    const res = await fetch(apiUrl);
 
-export default handler
+    // Obtener el video descargado en un buffer
+    const buffer = await res.buffer();
+
+    // Obtener el tamaño del video en megabytes
+    const sizeInBytes = buffer.byteLength;
+    const sizeInMB = (sizeInBytes / 1024 / 1024).toFixed(2);
+
+    // Enviar el video como un buffer
+    await conn.sendMessage(
+      m.chat,
+      {
+        video: buffer,
+        mimetype: 'video/mp4', // Ajusta el mimetype según el formato del video
+        fileName: `${video.title}.mp4`, // Ajusta el nombre del archivo
+        caption: `✰ *TÍTULO:* ${video.title}\n✰ *TAMAÑO:* ${sizeInMB} MB`,
+      },
+      { quoted: m }
+    );
+  } catch (e) {
+    console.error(e);
+    await m.reply(`「 ✰ 」Error al descargar el video: ${e.message}`);
+  }
+};
+
+handler.help = ["playvideo <enlace/título>"];
+handler.tags = ["downloader"];
+handler.command = /^(playvideo|ytvideo)$/i;
+handler.limit = true;
+
+export default handler;
