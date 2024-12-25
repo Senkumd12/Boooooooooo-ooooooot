@@ -42,7 +42,7 @@ let handler = async (m, { conn, args }) => {
       m.chat,
       {
         video: buffer,
-        mimetype: "audio/mp4",
+        mimetype: "video/MPEG-4",
         fileName: `${video.title}.mp4`,
         caption: `✰ *TÍTULO:* ${video.title}`,
       },
