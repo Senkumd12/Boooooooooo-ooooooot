@@ -1,5 +1,6 @@
 /*
-❀ Plugin personalizado
+❀ Plugin personalizado con previsualización de video
+
 */
 
 import fetch from 'node-fetch';
@@ -34,8 +35,23 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
       videoData = await apiinfo.json();
     }
 
-    let { title, duration, thumbnail } = videoData;
+    let { title, duration, thumbnail, views, url } = videoData;
     let quality = '480'; // Resolución fija a 480p
+    let formattedViews = parseInt(views).toLocaleString('en-US');
+
+    let infoMessage = `✰ *Información del video:*\n\n- *Título:* ${title}\n- *Duración:* ${duration || '-'}\n- *Resolución:* ${quality}p\n- *Vistas:* ${formattedViews}\n- *Link:* ${url}\n\n*Descargando video...*`;
+
+    // Enviar información del video al usuario
+    await conn.sendMessage(
+      m.chat,
+      {
+        image: { url: thumbnail },
+        caption: infoMessage,
+      },
+      { quoted: m }
+    );
+
+    // Descargar el video en resolución 480p
     let dl_url = `https://ytdownloader.nvlgroup.my.id/download?url=${queryOrUrl}&resolution=${quality}`;
     let vidFetch = await fetch(dl_url);
 
@@ -45,8 +61,6 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
     let videoBuffer = await vidFetch.buffer();
     let Tamaño = videoBuffer.length / (1024 * 1024); // Tamaño en MB
-
-    let infoMessage = `- *Título:* ${title}\n- *Duración:* ${duration || '-'}\n- *Resolución:* ${quality}p\n- *Link:* ${queryOrUrl}`;
 
     if (Tamaño > 100) {
       await conn.sendMessage(
@@ -67,7 +81,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
   }
 };
 
-handler.command = ['play2', 'ytmp4']; // Comandos disponibles
+handler.command = ['play', 'ytmp4']; // Comandos disponibles
 handler.help = ['play <búsqueda o enlace>', 'ytmp4 <búsqueda o enlace>'];
 handler.tags = ['downloader'];
 
