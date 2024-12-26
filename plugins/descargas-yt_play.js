@@ -1,8 +1,10 @@
-import yts from 'yt-search' 
-const handler = async (m, { conn, text, usedPrefix, command }) => {
-    if (!text) throw `Ejemplo: ${usedPrefix + command} diles`,m ,rcanal;
+import fetch from 'node-fetch';
+import yts from 'yt-search';
 
-    const randomReduction = Math.floor(Math.random() * 5) + 1;
+const handler = async (m, { conn, text, usedPrefix, command }) => {
+    if (!text) throw `Ejemplo: ${usedPrefix + command} diles`;
+
+    // Buscar el video en YouTube
     let search = await yts(text);
     let isVideo = /vid$/.test(command);
     let urls = search.all[0].url;
@@ -15,23 +17,26 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     *Url:* ${urls}
 
 🕒 *Su ${isVideo ? 'Video' : 'Audio'} se está enviando, espere un momento...*`;
-    
-    conn.sendMessage(m.chat, { 
-        image: { url: search.all[0].thumbnail }, 
-        caption: body
-    }, { quoted: m,rcanal });
-    m.react('react1')
 
-    let res = await dl_vid(urls)
-    let type = isVideo ? 'video' : 'audio';
-    let video = res.data.mp4;
-    let audio = res.data.mp3;
-    conn.sendMessage(m.chat, { 
-        [type]: { url: isVideo ? video : audio }, 
-        gifPlayback: false, 
-        mimetype: isVideo ? "video/mp4" : "audio/mpeg" 
+    // Enviar información del video
+    await conn.sendMessage(m.chat, {
+        image: { url: search.all[0].thumbnail },
+        caption: body
     }, { quoted: m });
-}
+    m.react('react1');
+
+    // Descargar el video usando la API proporcionada
+    let res = await dl_vid(urls);
+    let type = isVideo ? 'video' : 'audio';
+    let mediaUrl = isVideo ? res.data.mp4 : res.data.mp3;
+
+    // Enviar el video o audio descargado
+    await conn.sendMessage(m.chat, {
+        [type]: { url: mediaUrl },
+        gifPlayback: false,
+        mimetype: isVideo ? "video/mp4" : "audio/mpeg"
+    }, { quoted: m });
+};
 
 handler.command = ['play', 'playvid'];
 handler.help = ['play', 'playvid'];
@@ -39,16 +44,11 @@ handler.tags = ['dl'];
 export default handler;
 
 async function dl_vid(url) {
-    const response = await fetch('https://shinoa.us.kg/api/download/ytdl', {
-        method: 'POST',
+    const response = await fetch('https://apis-starlights-team.koyeb.app/starlight/youtube-mp4?url=' + url, {
+        method: 'GET',
         headers: {
-            'accept': '*/*',
-            'api_key': 'free',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            text: url,
-        })
+            'accept': '*/*'
+        }
     });
 
     if (!response.ok) {
