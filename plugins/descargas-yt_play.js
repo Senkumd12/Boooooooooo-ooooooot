@@ -25,17 +25,26 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     }, { quoted: m });
     m.react('react1');
 
-    // Descargar el video usando la API proporcionada
-    let res = await dl_vid(urls);
-    let type = isVideo ? 'video' : 'audio';
-    let mediaUrl = isVideo ? res.data.mp4 : res.data.mp3;
+    try {
+        // Descargar el video usando la API proporcionada
+        let res = await dl_vid(urls);
+        let type = isVideo ? 'video' : 'audio';
+        let mediaUrl = isVideo ? res.data.mp4 : res.data.mp3;
 
-    // Enviar el video o audio descargado
-    await conn.sendMessage(m.chat, {
-        [type]: { url: mediaUrl },
-        gifPlayback: false,
-        mimetype: isVideo ? "video/mp4" : "audio/mpeg"
-    }, { quoted: m });
+        if (!mediaUrl) {
+            throw new Error(`No se pudo obtener la URL del ${type} del video.`);
+        }
+
+        // Enviar el video o audio descargado
+        await conn.sendMessage(m.chat, {
+            [type]: { url: mediaUrl },
+            gifPlayback: false,
+            mimetype: isVideo ? "video/mp4" : "audio/mpeg"
+        }, { quoted: m });
+    } catch (error) {
+        console.error(error);
+        m.reply(`Error al descargar el video: ${error.message}`);
+    }
 };
 
 handler.command = ['play', 'playvid'];
@@ -56,5 +65,9 @@ async function dl_vid(url) {
     }
 
     const data = await response.json();
+    if (!data || !data.data) {
+        throw new Error('La respuesta de la API no contiene los datos esperados.');
+    }
+
     return data;
 }
