@@ -67,7 +67,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
   }
 };
 
-handler.command = ['play', 'ytmp4']; // Comandos disponibles
+handler.command = ['play2', 'ytmp4']; // Comandos disponibles
 handler.help = ['play <búsqueda o enlace>', 'ytmp4 <búsqueda o enlace>'];
 handler.tags = ['downloader'];
 
