@@ -26,7 +26,7 @@ let handler = async (m, { conn, args }) => {
       { quoted: m }
     );
 
-    // Descargar el video usando la API
+    // Descargar el video usando la nueva API
     const apiUrl = `https://deliriussapi-oficial.vercel.app/download/ytmp4?url=${video.url}`;
     const res = await fetch(apiUrl);
 
