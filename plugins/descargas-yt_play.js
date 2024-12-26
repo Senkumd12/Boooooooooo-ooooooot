@@ -1,53 +1,74 @@
-/* 
-❀ By JTxs
-
-[ Canal Principal ] :
-https://whatsapp.com/channel/0029VaeQcFXEFeXtNMHk0D0n
-
-[ Canal Rikka Takanashi Bot ] :
-https://whatsapp.com/channel/0029VaksDf4I1rcsIO6Rip2X
-
-[ Canal StarlightsTeam] :
-https://whatsapp.com/channel/0029VaBfsIwGk1FyaqFcK91S
-
-[ HasumiBot FreeCodes ] :
-https://whatsapp.com/channel/0029Vanjyqb2f3ERifCpGT0W
+/*
+❀ Plugin personalizado
 */
 
-// *[ ❀ YTMP4 ]*
-import fetch from 'node-fetch'
+import fetch from 'node-fetch';
+import yts from 'yt-search';
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
-let [url, resolution] = text.split(' ')
-if (!url) {
-return conn.reply(m.chat, `Ingresa el link de un video de youtube y una calidad ejemplo : ${usedPrefix + command} + *link* *360* `, m)
-}
-    
-try {
-let apiinfo = await fetch(`https://ytdownloader.nvlgroup.my.id/info?url=${url}`);
-let jsoninfo = await apiinfo.json()
-let titulo = jsoninfo.title
-let duracion = jsoninfo.duration || '-'
-let calidad = resolution || '360'
-let img = jsoninfo.thumbnail
-let dl_url = `https://ytdownloader.nvlgroup.my.id/download?url=${url}&resolution=${calidad}`
-let vidFetch = await fetch(dl_url)
-let video = await vidFetch.buffer()
-let Tamaño = video.length / (1024 * 1024)
+  try {
+    let queryOrUrl = text.trim(); // Obtener la consulta o enlace
+    if (!queryOrUrl) {
+      return conn.reply(
+        m.chat,
+        `Ingresa un *enlace* de YouTube o un *término de búsqueda*.\n\n*Ejemplo:*\n${usedPrefix + command} Never Gonna Give You Up\n${usedPrefix + command} https://youtu.be/dQw4w9WgXcQ`,
+        m
+      );
+    }
 
-let HS = `- *Titulo* : ${titulo}
-- *Link* : ${url}
-- *Duracion* : ${duracion}
-- *Calidad* ${calidad}`
-if (Tamaño > 100) {
-await conn.sendMessage(m.chat, { document: video, caption: HS, mimetype: 'video/mp4', fileName: `${titulo}.mp4`})
-} else {
-await conn.sendMessage(m.chat, { video: video, caption: HS, mimetype: 'video/mp4'})
-}
-} catch (error) {
-console.error(error)    
-}}
+    let videoData;
 
-handler.command = ['ytmp4']
+    // Comprobar si es un enlace de YouTube
+    if (queryOrUrl.startsWith('http')) {
+      let apiinfo = await fetch(`https://ytdownloader.nvlgroup.my.id/info?url=${queryOrUrl}`);
+      videoData = await apiinfo.json();
+    } else {
+      // Búsqueda por texto
+      const searchResults = await yts(queryOrUrl);
+      if (!searchResults.videos.length) {
+        return conn.reply(m.chat, 'No se encontraron resultados para tu búsqueda.', m);
+      }
+      let firstVideo = searchResults.videos[0];
+      queryOrUrl = firstVideo.url;
+      let apiinfo = await fetch(`https://ytdownloader.nvlgroup.my.id/info?url=${queryOrUrl}`);
+      videoData = await apiinfo.json();
+    }
 
-export default handler
+    let { title, duration, thumbnail } = videoData;
+    let quality = '480'; // Resolución fija a 480p
+    let dl_url = `https://ytdownloader.nvlgroup.my.id/download?url=${queryOrUrl}&resolution=${quality}`;
+    let vidFetch = await fetch(dl_url);
+
+    if (!vidFetch.ok) {
+      return conn.reply(m.chat, 'Error al descargar el video. Por favor, verifica el enlace.', m);
+    }
+
+    let videoBuffer = await vidFetch.buffer();
+    let Tamaño = videoBuffer.length / (1024 * 1024); // Tamaño en MB
+
+    let infoMessage = `- *Título:* ${title}\n- *Duración:* ${duration || '-'}\n- *Resolución:* ${quality}p\n- *Link:* ${queryOrUrl}`;
+
+    if (Tamaño > 100) {
+      await conn.sendMessage(
+        m.chat,
+        { document: videoBuffer, caption: infoMessage, mimetype: 'video/mp4', fileName: `${title}.mp4` },
+        { quoted: m }
+      );
+    } else {
+      await conn.sendMessage(
+        m.chat,
+        { video: videoBuffer, caption: infoMessage, mimetype: 'video/mp4' },
+        { quoted: m }
+      );
+    }
+  } catch (error) {
+    console.error(error);
+    conn.reply(m.chat, `Error: ${error.message}`, m);
+  }
+};
+
+handler.command = ['play', 'ytmp4']; // Comandos disponibles
+handler.help = ['play <búsqueda o enlace>', 'ytmp4 <búsqueda o enlace>'];
+handler.tags = ['downloader'];
+
+export default handler;
