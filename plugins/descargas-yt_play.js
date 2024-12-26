@@ -37,13 +37,20 @@ let handler = async (m, { conn, args }) => {
     }
 
     const res = await fetch(apiUrl);
+    const json = await res.json();
 
-    if (!res.ok) {
+    if (!res.ok || !json || !json.download_url) {
       throw new Error(`Error al descargar el video: ${res.statusText}`);
     }
 
+    // Descargar el video desde la URL proporcionada en la respuesta JSON
+    const videoRes = await fetch(json.download_url);
+    if (!videoRes.ok) {
+      throw new Error(`Error al descargar el video: ${videoRes.statusText}`);
+    }
+
     // Obtener el video descargado como buffer
-    const buffer = await res.buffer();
+    const buffer = await videoRes.buffer();
 
     // Enviar el video como un buffer
     await conn.sendMessage(
