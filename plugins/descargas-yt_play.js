@@ -26,8 +26,16 @@ let handler = async (m, { conn, args }) => {
       { quoted: m }
     );
 
-    // Descargar el video usando la nueva API
-    const apiUrl = `https://deliriussapi-oficial.vercel.app/download/ytmp4?url=${video.url}`;
+    // Elegir API para descargar el video
+    const apiChoice = 1; // Cambiar a 2 para usar la segunda API
+    
+    let apiUrl;
+    if (apiChoice === 1) {
+      apiUrl = `https://deliriussapi-oficial.vercel.app/download/ytmp4?url=${video.url}`;
+    } else {
+      apiUrl = `https://apis-starlights-team.koyeb.app/starlight/youtube-mp4?url=${video.url}`;
+    }
+
     const res = await fetch(apiUrl);
 
     if (!res.ok) {
