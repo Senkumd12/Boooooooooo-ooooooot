@@ -1,100 +1,62 @@
-// BY JTXS
-// Creado : 6/12/24
- 
 /* 
+❀ By JTxs
+
 [ Canal Principal ] :
 https://whatsapp.com/channel/0029VaeQcFXEFeXtNMHk0D0n
- 
+
 [ Canal Rikka Takanashi Bot ] :
 https://whatsapp.com/channel/0029VaksDf4I1rcsIO6Rip2X
- 
+
+[ Canal StarlightsTeam ] :
+https://whatsapp.com/channel/0029VaBfsIwGk1FyaqFcK91S
+
 [ HasumiBot FreeCodes ] :
 https://whatsapp.com/channel/0029Vanjyqb2f3ERifCpGT0W
 */
 
-import axios from 'axios';
-import yts from 'yt-search';
+// *[ ❀ Play de Video (YT) ❀ ]*
+import fetch from 'node-fetch';
 
-const handler = async (m, { conn, text, command }) => {
-    if (!text || text.trim() === "") {
-        return m.reply(`Por favor, ingresa el texto o enlace del video que deseas buscar/descargar.`);
+let handler = async (m, { conn, text, usedPrefix, command }) => {
+    let [url, resolution] = text.split(' ');
+
+    if (!url) {
+        return conn.reply(m.chat, `Ingresa el enlace de un video de YouTube y una calidad, ejemplo:\n\n${usedPrefix + command} *enlace* *360*`, m);
     }
 
     try {
-        // Buscar en YouTube
-        let ytsearch = await yts(text);
-        const ytres = ytsearch.all[0];
+        // Obtener información del video
+        let apiInfo = await fetch(`https://ytdownloader.nvlgroup.my.id/info?url=${url}`);
+        let jsonInfo = await apiInfo.json();
 
-        // Verificación inicial para `.play` y `.play3`
-        if (command === 'play' && ytres.timestamp.includes(':') && parseInt(ytres.timestamp.split(':')[0]) >= 1) {
-            return m.reply('El video no puede durar más de 1 hora.');
-        }
+        if (!jsonInfo.title) return m.reply('No se pudo obtener información del video. Asegúrate de que el enlace sea válido.');
 
-        // Información del video
-        let info = `*Titulo :* ${ytres.title}
-*Duración :* ${ytres.timestamp}
-*Visitas :* ${ytres.views}
-*Subido Hace :* ${ytres.ago}
-*Autor :* ${ytres.author.name}
-*Descripción :* ${ytres.description}
-*Url :* ${ytres.url}`;
+        let titulo = jsonInfo.title;
+        let duracion = jsonInfo.duration || '-';
+        let calidad = resolution || '360';
+        let img = jsonInfo.thumbnail;
+        let dl_url = `https://ytdownloader.nvlgroup.my.id/download?url=${url}&resolution=${calidad}`;
 
-        await conn.sendMessage(m.chat, {
-            text: info,
-            contextInfo: {
-                externalAdReply: {
-                    title: ytres.title,
-                    mediaType: 1,
-                    previewType: 1,
-                    thumbnailUrl: ytres.image,
-                    mediaUrl: ytres.url
-                }
-            }
-        }, { quoted: m });
+        // Descargar el video
+        let vidFetch = await fetch(dl_url);
+        let video = await vidFetch.buffer();
+        let Tamaño = video.length / (1024 * 1024); // Tamaño en MB
 
-        // Descargar video/audio
-        if (command === 'play3') {
-            // Descarga usando bigconv
-            const bigconv = {
-                getToken: async (url) => {
-                    const id = url.split('v=')[1] || url.split('/').pop();
-                    const response = await axios.get(`https://dd-n01.yt2api.com/api/v4/info/${id}`);
-                    const cookies = response.headers['set-cookie']?.[0]?.split(';')[0] || '';
-                    return { data: response.data, cookie: cookies };
-                },
-                download: async (url, format, quality) => {
-                    const { data, cookie } = await bigconv.getToken(url);
-                    const formats = data.formats[format];
-                    const selected = formats.find(option => option.quality === quality);
-                    if (!selected) throw new Error('No se encontró la calidad solicitada.');
+        let HS = `*🎥 Titulo:* ${titulo}\n*🔗 Link:* ${url}\n*⏱️ Duración:* ${duracion}\n*📽️ Calidad:* ${calidad}`;
 
-                    const response = await axios.post('https://dd-n01.yt2api.com/api/v4/convert', {
-                        token: selected.token
-                    }, {
-                        headers: { Cookie: cookie }
-                    });
-
-                    return response.data.download_url;
-                }
-            };
-
-            const videoUrl = await bigconv.download(ytres.url, 'video', '360p');
-            await conn.sendMessage(m.chat, { video: { url: videoUrl }, caption: ytres.title }, { quoted: m });
+        if (Tamaño > 100) {
+            // Si el tamaño supera los 100 MB, se envía como documento
+            await conn.sendMessage(m.chat, { document: video, caption: HS, mimetype: 'video/mp4', fileName: `${titulo}.mp4` });
         } else {
-            // Descarga usando API alternativa
-            const api = await axios.get(`https://Ikygantengbangetanjay-api.hf.space/yt?query=${encodeURIComponent(text)}`);
-            const json = api.data.result;
-
-            await conn.sendMessage(m.chat, { audio: { url: json.download.audio }, mimetype: 'audio/mpeg', fileName: `${json.title}.mp3` }, { quoted: m });
-            await conn.sendMessage(m.chat, { video: { url: json.download.video }, mimetype: 'video/mp4', fileName: `${json.title}.mp4` }, { quoted: m });
+            // Si no, se envía como video normal
+            await conn.sendMessage(m.chat, { video: video, caption: HS, mimetype: 'video/mp4' });
         }
-
     } catch (error) {
         console.error(error);
-        m.reply('Ocurrió un error al procesar tu solicitud. Por favor, intenta nuevamente.');
+        m.reply('Hubo un error al procesar tu solicitud. Por favor, intenta nuevamente.');
     }
 };
 
-handler.command = /^(play|play3)$/i;
+handler.command = ['playvideo', 'playvid', 'ytmp4'];
 
 export default handler;
