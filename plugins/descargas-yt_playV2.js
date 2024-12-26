@@ -35,7 +35,7 @@ let handler = async (m, { conn, args }) => {
     }
   }
 
-  await conn.reply(m.chat, captvid, m, infoReply)
+  await conn.reply(m.chat, captvid, m, infoReply, rcanal)
 
   const apiRes = await fetch(`https://api.zenkey.my.id/api/download/ytmp3?apikey=zenkey&url=${url}`)
   const json = await apiRes.json()
