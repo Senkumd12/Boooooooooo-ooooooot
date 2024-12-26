@@ -1,76 +1,60 @@
-import fetch from "node-fetch";
-import yts from "yt-search";
+import yts from 'yt-search' 
+const handler = async (m, { conn, text, usedPrefix, command }) => {
+    if (!text) throw `Ejemplo: ${usedPrefix + command} diles`,m ,rcanal;
 
-let handler = async (m, { conn, args }) => {
-  try {
-    const text = args.join(" ");
-    if (!text.trim()) {
-      return m.reply(
-        `「 ✰ 」INGRESA UN *ENLACE* O *TÍTULO* DEL *VIDEO* QUE DESEA DESCARGAR DE *YOUTUBE*\n\n*• EJEMPLO:*\n> .playvideo Never Gonna Give You Up`
-      );
-    }
+    const randomReduction = Math.floor(Math.random() * 5) + 1;
+    let search = await yts(text);
+    let isVideo = /vid$/.test(command);
+    let urls = search.all[0].url;
+    let body = `\`YouTube Play\`
 
-    // Buscar el video en YouTube
-    const search = await yts(text);
-    if (!search.videos.length) {
-      return m.reply("No se encontraron resultados para tu búsqueda.");
-    }
+    *Título:* ${search.all[0].title}
+    *Vistas:* ${search.all[0].views}
+    *Duración:* ${search.all[0].timestamp}
+    *Subido:* ${search.all[0].ago}
+    *Url:* ${urls}
 
-    const video = search.videos[0];
-    const infoMessage = `「 ✰ 」 *RESULTADOS ENCONTRADOS:*\n> BUSQUEDA: ${text}\n\n✰ *TÍTULO:*\n> ${video.title}\n\`\`\`----------\`\`\`\n✰ *VISTAS:*\n> ${video.views}\n\`\`\`----------\`\`\`[...]`;
-
-    // Enviar información del video
-    await conn.sendMessage(
-      m.chat,
-      { image: { url: video.thumbnail }, caption: infoMessage },
-      { quoted: m }
-    );
-
-    // Elegir API para descargar el video
-    const apiChoice = 1; // Cambiar a 2 para usar la segunda API
+🕒 *Su ${isVideo ? 'Video' : 'Audio'} se está enviando, espere un momento...*`;
     
-    let apiUrl;
-    if (apiChoice === 1) {
-      apiUrl = `https://deliriussapi-oficial.vercel.app/download/ytmp4?url=${video.url}`;
-    } else {
-      apiUrl = `https://apis-starlights-team.koyeb.app/starlight/youtube-mp4?url=${video.url}`;
-    }
+    conn.sendMessage(m.chat, { 
+        image: { url: search.all[0].thumbnail }, 
+        caption: body
+    }, { quoted: m,rcanal });
+    m.react('react1')
 
-    const res = await fetch(apiUrl);
-    const json = await res.json();
+    let res = await dl_vid(urls)
+    let type = isVideo ? 'video' : 'audio';
+    let video = res.data.mp4;
+    let audio = res.data.mp3;
+    conn.sendMessage(m.chat, { 
+        [type]: { url: isVideo ? video : audio }, 
+        gifPlayback: false, 
+        mimetype: isVideo ? "video/mp4" : "audio/mpeg" 
+    }, { quoted: m });
+}
 
-    if (!res.ok || !json || !json.download_url) {
-      throw new Error(`Error al descargar el video: ${res.statusText}`);
-    }
-
-    // Descargar el video desde la URL proporcionada en la respuesta JSON
-    const videoRes = await fetch(json.download_url);
-    if (!videoRes.ok) {
-      throw new Error(`Error al descargar el video: ${videoRes.statusText}`);
-    }
-
-    // Obtener el video descargado como buffer
-    const buffer = await videoRes.buffer();
-
-    // Enviar el video como un buffer
-    await conn.sendMessage(
-      m.chat,
-      {
-        video: buffer,
-        mimetype: "video/mp4",
-        fileName: `${video.title}.mp4`,
-        caption: `✰ *TÍTULO:* ${video.title}`,
-      },
-      { quoted: m }
-    );
-  } catch (e) {
-    console.error(e);
-    m.reply(`「 ✰ 」Error al descargar el video: ${e.message}`);
-  }
-};
-
-handler.help = ["playvideo <enlace/título>"];
-handler.tags = ["downloader"];
-handler.command = /^(playvideo|ytvideo)$/i;
-
+handler.command = ['play', 'playvid'];
+handler.help = ['play', 'playvid'];
+handler.tags = ['dl'];
 export default handler;
+
+async function dl_vid(url) {
+    const response = await fetch('https://shinoa.us.kg/api/download/ytdl', {
+        method: 'POST',
+        headers: {
+            'accept': '*/*',
+            'api_key': 'free',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            text: url,
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+}
