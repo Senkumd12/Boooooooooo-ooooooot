@@ -59,4 +59,4 @@ handler.tags = ["downloader"]
 handler.command = /^(play|ytplay)$/i
 handler.limit = true
 
-export default handler,
+export default handler
