@@ -17,7 +17,7 @@ let handler = async (m, { conn, args }) => {
     }
 
     const video = search.videos[0];
-    const infoMessage = `「 ✰ 」 *RESULTADOS ENCONTRADOS:*\n> BUSQUEDA: ${text}\n\n✰ *TÍTULO:*\n> ${video.title}\n\`\`\`----------\`\`\`\n✰ *VISTAS:*\n> ${video.views}\n\`\`\`----------\`\`\`\n✰ *DURACIÓN:*\n> ${video.timestamp}\n\`\`\`----------\`\`\`\n✰ *SUBIDO:*\n> ${video.ago}\n\`\`\`----------\`\`\`\n✰ *URL:*\n> ${video.url}\n\`\`\`----------\`\`\`\n\n\`ENVIANDO VIDEO...\``;
+    const infoMessage = `「 ✰ 」 *RESULTADOS ENCONTRADOS:*\n> BUSQUEDA: ${text}\n\n✰ *TÍTULO:*\n> ${video.title}\n\`\`\`----------\`\`\`\n✰ *VISTAS:*\n> ${video.views}\n\`\`\`----------\`\`\`[...]`;
 
     // Enviar información del video
     await conn.sendMessage(
@@ -27,7 +27,7 @@ let handler = async (m, { conn, args }) => {
     );
 
     // Descargar el video usando la API
-    const apiUrl = `https://api-rin-tohsaka.vercel.app/download/ytmp4?url=$${video.url}`;
+    const apiUrl = `https://api-rin-tohsaka.vercel.app/download/ytmp4?url=${video.url}`;
     const res = await fetch(apiUrl);
 
     if (!res.ok) {
