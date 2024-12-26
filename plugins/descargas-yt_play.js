@@ -26,10 +26,10 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     m.react('react1');
 
     try {
-        // Descargar el video usando la API proporcionada
+        // Descargar el video usando la nueva API proporcionada
         let res = await dl_vid(urls);
         let type = isVideo ? 'video' : 'audio';
-        let mediaUrl = isVideo ? res.data.mp4 : res.data.mp3;
+        let mediaUrl = isVideo ? res.data.video : res.data.audio;
 
         if (!mediaUrl) {
             throw new Error(`No se pudo obtener la URL del ${type} del video.`);
@@ -53,7 +53,7 @@ handler.tags = ['dl'];
 export default handler;
 
 async function dl_vid(url) {
-    const response = await fetch('https://apis-starlights-team.koyeb.app/starlight/youtube-mp4?url=' + url, {
+    const response = await fetch('https://deliriussapi-oficial.vercel.app/download/ytmp4v2?url=' + encodeURIComponent(url), {
         method: 'GET',
         headers: {
             'accept': '*/*'
