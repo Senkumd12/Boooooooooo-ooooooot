@@ -12,7 +12,7 @@ let handler = async (m, { conn, args }) => {
 
   const res = await yts(text)
   const vid = res.videos[0]
-  if (!vid) return m.reply("Video tidak ditemukan. Silakan coba kata kunci lain")
+  if (!vid) return m.reply("Video xd tidak ditemukan. Silakan coba kata kunci lain")
 
   const { title, thumbnail, timestamp, views, ago, url } = vid
   const formattedViews = parseInt(views).toLocaleString("id-ID") + " tayangan"
