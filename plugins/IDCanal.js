@@ -1,56 +1,47 @@
 import { generateWAMessageFromContent } from '@whiskeysockets/baileys';
-import * as fs from 'fs';
-import { sticker } from '../lib/sticker.js';
-import uploadFile from '../lib/uploadFile.js';
-import uploadImage from '../lib/uploadImage.js';
-import { webp2png } from '../lib/webp2mp4.js';
 
-// ID del grupo donde se enviará la información
-const idGroup = "120363368938294572@g.us"; 
+const idGroup = "120363179453431130@g.us"; // ID del grupo donde se enviará la información
 
 var handler = async (m, { conn, text }) => {
     if (!m.quoted && !text) 
-        return conn.reply(m.chat, `🚩 Por favor, escribe t u mensaje o cita el contenido que deseas enviar.`, m);
-
-    let messageType = 'un texto'; 
-    let isMedia = false;
-    let quoted, mime, mediax, htextos;
+        return conn.reply(m.chat, `🚩 Por favor, escribe tu mensaje o cita el contenido que deseas enviar.`, m);
 
     try {
-        quoted = m.quoted ? m.quoted : m;
-        mime = (quoted.msg || quoted).mimetype || '';
-        isMedia = /image|video|sticker|audio/.test(mime);
-        htextos = `${text ? text : ""}`;
+        let quoted = m.quoted || m; // Mensaje citado o actual
+        let mime = (quoted.msg || quoted).mimetype || ''; // Tipo de archivo
+        let isMedia = /image|video|sticker|audio/.test(mime); // Verificar si es multimedia
+        let content;
 
-        if (isMedia && quoted.mtype === 'imageMessage') {
-            mediax = await quoted.download?.();
-            await conn.sendMessage(idGroup, { image: mediax, caption: htextos || null }, { quoted: null });
-            messageType = htextos ? 'una imagen con texto' : 'una imagen';
-        } else if (isMedia && quoted.mtype === 'videoMessage') {
-            mediax = await quoted.download?.();
-            await conn.sendMessage(idGroup, { video: mediax, caption: htextos || null }, { quoted: null });
-            messageType = htextos ? 'un video con texto' : 'un video';
-        } else if (isMedia && quoted.mtype === 'audioMessage') {
-            mediax = await quoted.download?.();
-            await conn.sendMessage(idGroup, { audio: mediax, mimetype: 'audio/mp4', fileName: `audio.mp3` }, { quoted: null });
-            messageType = 'un audio';
-        } else if (isMedia && quoted.mtype === 'stickerMessage') {
-            mediax = await quoted.download?.();
-            await conn.sendMessage(idGroup, { sticker: mediax }, { quoted: null });
-            messageType = 'un sticker';
+        // Procesar el contenido según el tipo de mensaje
+        if (isMedia) {
+            const media = await quoted.download?.();
+            if (!media) return m.reply('⚠️ No se pudo descargar el archivo. Intenta nuevamente.');
+
+            if (/image/.test(mime)) {
+                content = { image: media, caption: text || '' };
+            } else if (/video/.test(mime)) {
+                content = { video: media, caption: text || '' };
+            } else if (/audio/.test(mime)) {
+                content = { audio: media, mimetype: 'audio/mp4' };
+            } else if (/sticker/.test(mime)) {
+                content = { sticker: media };
+            }
         } else {
-            await conn.relayMessage(idGroup, { extendedTextMessage: { text: `${htextos}` } }, {});
-            messageType = 'un texto';
+            content = { text: text || '' };
         }
+
+        // Enviar al grupo
+        await conn.sendMessage(idGroup, content, { quoted: null });
+        m.reply('✅ Mensaje enviado al grupo correctamente.');
     } catch (err) {
-        console.error('Error al enviar el mensaje:', err);
-        m.reply('Hubo un error al enviar el mensaje. Por favor, inténtalo de nuevo.\n\n' + err);
+        console.error('Error:', err);
+        m.reply('⚠️ Ocurrió un error al enviar el mensaje. Por favor, intenta de nuevo.');
     }
 };
 
-handler.help = ['enviar'];
+handler.help = ['enviargrupo'];
 handler.tags = ['main'];
-handler.command = ['enviar', 'sug', 'solicitud', 'enviargrupo'];
+handler.command = ['enviargrupo']; // Nombre del comando
 handler.register = false;
 
 export default handler;
