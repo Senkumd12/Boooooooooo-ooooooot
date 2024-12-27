@@ -10,7 +10,7 @@ const idGroup = "120363368938294572@g.us";
 
 var handler = async (m, { conn, text }) => {
     if (!m.quoted && !text) 
-        return conn.reply(m.chat, `🚩 Por favor, escribe tu mensaje o cita el contenido que deseas enviar.`, m);
+        return conn.reply(m.chat, `🚩 Por favor, escribe t u mensaje o cita el contenido que deseas enviar.`, m);
 
     let messageType = 'un texto'; 
     let isMedia = false;
