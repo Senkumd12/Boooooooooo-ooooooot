@@ -1,6 +1,6 @@
 import { generateWAMessageFromContent } from '@whiskeysockets/baileys';
 
-const idGroup = "120363179453431130@g.us"; // ID del grupo donde se enviará la información
+const idGroup = "120363368938294572@g.us"; // ID del grupo donde se enviará la información
 
 var handler = async (m, { conn, text }) => {
     if (!m.quoted && !text) 
