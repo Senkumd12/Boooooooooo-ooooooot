@@ -1,6 +1,5 @@
 /*
 ❀ Plugin personalizado con previsualización de video
-
 */
 
 import fetch from 'node-fetch';
@@ -39,7 +38,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     let quality = '480'; // Resolución fija a 480p
     let formattedViews = parseInt(views).toLocaleString('en-US');
 
-    let infoMessage = `✰ *Información del video:*\n\n- *Título:* ${title}\n- *Duración:* ${duration || '-'}\n- *Resolución:* ${quality}p\n\n*Powered @Alba070503*`;
+    let infoMessage = `✰ *Información del video:*\n\n- *Título:* ${title}\n- *Duración:* ${duration || '-'}\n- *Resolución:* ${quality}p\n- *Vistas:* ${formattedViews}\n- *Link:* ${url}\n\n*Descargando video...*`;
 
     // Enviar información del video al usuario
     await conn.sendMessage(
