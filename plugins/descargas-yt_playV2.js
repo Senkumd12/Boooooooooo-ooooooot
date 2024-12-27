@@ -1,62 +1,66 @@
-/**
-© ZENITH
-ᘎ https://whatsapp.com/channel/0029Vai9MMj5vKABWrYzIJ2Z
+/* 
+
+[ Canal Principal ] :
+https://whatsapp.com/channel/0029VaeQcFXEFeXtNMHk0D0n
+
+[ Canal Rikka Takanashi Bot ] :
+https://whatsapp.com/channel/0029VaksDf4I1rcsIO6Rip2X
+
+[ Canal StarlightsTeam] :
+https://whatsapp.com/channel/0029VaBfsIwGk1FyaqFcK91S
+
+[ HasumiBot FreeCodes ] :
+https://whatsapp.com/channel/0029Vanjyqb2f3ERifCpGT0W
 */
-import fetch from "node-fetch"
-import yts from "yt-search"
 
-let handler = async (m, { conn, args }) => {
-  const text = args.join(" ") || m.quoted?.text || m.quoted?.caption || m.quoted?.description || ""
-  if (!text.trim()) return m.reply("Masukkan kata kunci pencarian")
-  await m.reply("Tunggu sebentar...")
+// *[ ❀ PLAY ]*
+import fetch from "node-fetch";
+import yts from "yt-search";
 
-  const res = await yts(text)
-  const vid = res.videos[0]
-  if (!vid) return m.reply("Video xd tidak ditemukan. Silakan coba kata kunci lain")
-
-  const { title, thumbnail, timestamp, views, ago, url } = vid
-  const formattedViews = parseInt(views).toLocaleString("id-ID") + " tayangan"
-  const captvid = `*Judul:* ${title}\n*Durasi:* ${timestamp}\n*Views:* ${formattedViews}\n*Upload:* ${ago}\n*Link:* ${url}`
-
-  const ytthumb = (await conn.getFile(thumbnail))?.data
-
-  const infoReply = {
-    contextInfo: {
-      externalAdReply: {
-        body: "Sedang mengunduh hasil, harap tunggu...",
-        mediaType: 1,
-        mediaUrl: url,
-        previewType: 0,
-        renderLargerThumbnail: true,
-        sourceUrl: url,
-        thumbnail: ytthumb,
-        title: "Y O U T U B E - P L A Y"
-      }
-    }
-  }
-
-  await conn.reply(m.chat, captvid, m, infoReply, rcanal)
-
-  const apiRes = await fetch(`https://api.zenkey.my.id/api/download/ytmp3?apikey=zenkey&url=${url}`)
-  const json = await apiRes.json()
-
-  if (json.status) {
-    const { result } = json
-    const { download } = result
-    await conn.sendMessage(m.chat, {
-      audio: { url: download.url },
-      caption: `*Judul:* ${title}\n*Ukuran File:* ${download.size}\n*Kualitas:* ${download.quality}`,
-      mimetype: "audio/mpeg",
-      contextInfo: infoReply.contextInfo
-    }, { quoted: m })
-  } else {
-    await m.reply("Gagal mengunduh audio")
-  }
+let handler = async (m, { conn, text }) => {
+if (!text) {
+return m.reply("❀ Ingresa el texto de lo que quieres buscar")
 }
 
-handler.help = ["play <pencarian>"]
-handler.tags = ["downloader"]
-handler.command = /^(play|ytplay)$/i
-handler.limit = true
+let ytres = await yts(text)
+let video = ytres.videos[0]
+  
+if (!video) {
+return m.reply("❀ Video no encontrado")
+}
+
+let { title, thumbnail, timestamp, views, ago, url } = video
+
+let vistas = parseInt(views).toLocaleString("es-ES") + " vistas"
+
+let HS = `- *Duración:* ${timestamp}
+- *Vistas:* ${vistas}
+- *Subido:* ${ago}
+- *Enlace:* ${url}`
+
+let thumb = (await conn.getFile(thumbnail))?.data;
+
+let JT = {
+contextInfo: {
+externalAdReply: {
+title: title, body: "",
+mediaType: 1, previewType: 0,
+mediaUrl: url, sourceUrl: url,
+thumbnail: thumb, renderLargerThumbnail: true,
+}}}
+
+await conn.reply(m.chat, HS, m, JT)
+
+try {
+let api = await fetch(`https://api.zenkey.my.id/api/download/ytmp3?apikey=zenkey&url=${url}`);
+let json = await api.json()
+let { download } = json.result
+
+await conn.sendMessage(m.chat, { audio: { url: download.url }, caption: ``, mimetype: "audio/mpeg", }, { quoted: m })
+} catch (error) {
+console.error(error)    
+}}
+
+handler.command = /^(play)$/i
 
 export default handler
