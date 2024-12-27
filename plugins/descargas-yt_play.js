@@ -39,7 +39,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     let quality = '480'; // Resolución fija a 480p
     let formattedViews = parseInt(views).toLocaleString('en-US');
 
-    let infoMessage = `✰ *Información del video:*\n\n- *Título:* ${title}\n- *Duración:* ${duration || '-'}\n- *Resolución:* ${quality}p\n- *Vistas:* ${formattedViews}\n- *Link:* ${url}\n\n*Descargando video...*`;
+    let infoMessage = `✰ *Información del video:*\n\n- *Título:* ${title}\n- *Duración:* ${timestamp} \n\n- *Resolución:* ${quality}p\n- *Vistas:* ${ago} \n\n - *Link:* ${url} \n\n*Powered @Alba070503*`;
 
     // Enviar información del video al usuario
     await conn.sendMessage(
