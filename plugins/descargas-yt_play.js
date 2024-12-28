@@ -1,5 +1,5 @@
 /*
-❀ Plugin personalizado con previsualización de video
+❀ Plugin creado por @Alba070503
 */
 
 import fetch from 'node-fetch';
@@ -12,7 +12,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
       return conn.reply(
         m.chat,
         `Ingresa un *enlace* de YouTube o un *término de búsqueda*.\n\n*Ejemplo:*\n${usedPrefix + command} Never Gonna Give You Up\n${usedPrefix + command} https://youtu.be/dQw4w9WgXcQ`,
-        m
+        m, rcanal
       );
     }
 
@@ -85,3 +85,4 @@ handler.help = ['play <búsqueda o enlace>', 'ytmp4 <búsqueda o enlace>'];
 handler.tags = ['downloader'];
 
 export default handler;
+      
