@@ -28,7 +28,7 @@ let txt = `- *Título* : ${ytres[0].title}
 - *Publicado* : ${ytres[0].ago}
 - *Canal* : ${ytres[0].author.name || 'Desconocido'}
 - *Url* : ${'https://youtu.be/' + ytres[0].videoId}`
-await conn.sendFile(m.chat, ytres[0].image, 'thumbnail.jpg', txt, m)
+await conn.sendFile(m.chat, ytres[0].image, 'thumbnail.jpg', txt, m, rcanal)
     
 try {
 let api = await fetch(`https://api.giftedtech.my.id/api/download/dlmp4?apikey=gifted&url=${ytres[0].url}`)
