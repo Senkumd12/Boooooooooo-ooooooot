@@ -1,35 +1,41 @@
-const handler = async (m, { conn }) => {
-  const from = m.chat;
+const { default: fetch } = require('node-fetch');
 
-  // Crear los botones
-  const buttons = [
-    {
-      buttonId: "boton1",
-      buttonText: { displayText: "Botón 1" },
-      type: 1,
-    },
-    {
-      buttonId: "boton2",
-      buttonText: { displayText: "Botón 2" },
-      type: 1,
-    },
-  ];
+module.exports = {
+  name: "test1",
+  alias: [],
+  category: "general",
+  desc: "Envía un mensaje con imagen y botones",
+  async execute(conn, m, args) {
+    try {
+      const imageUrl = 'https://qu.ax/MFOVJ.jpg'; // Reemplaza con el enlace de tu imagen
+      const buttons = [
+        {
+          buttonId: ".gay",
+          buttonText: { displayText: "Si" },
+          type: 1,
+        },
+        {
+          buttonId: ".play2 felices los 4",
+          buttonText: { displayText: "No" },
+          type: 1,
+        },
+      ];
 
-  // Opciones del mensaje
-  const buttonMessage = {
-    text: "Test",
-    footer: "Testing",
-    buttons: buttons,
-    headerType: 1, // Tipo de encabezado (6 para imagen, 1 para texto)
-    viewOnce: true, // El mensaje solo puede ser visto una vez
-  };
+      const response = await fetch(imageUrl); // Obtiene la imagen desde la URL
+      const buffer = await response.buffer();
 
-  // Enviar el mensaje
-  await conn.sendMessage(from, buttonMessage, { quoted: m });
+      await conn.sendMessage(m.chat, {
+        image: buffer, // Envía la imagen como buffer
+        caption: "Eres gay?",
+        footer: "Sock",
+        buttons: buttons,
+        headerType: 4,
+        viewOnce: true,
+      }, { quoted: m });
+
+    } catch (err) {
+      console.error(err);
+      await conn.sendMessage(m.chat, { text: "Hubo un error al ejecutar el comando." }, { quoted: m });
+    }
+  },
 };
-
-handler.help = ['testbuttons']; // Ayuda del comando
-handler.tags = ['tools']; // Categoría
-handler.command = /^testbuttons$/i; // Comando que activará el plugin
-
-export default handler;
