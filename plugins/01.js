@@ -1,3 +1,5 @@
+import fetch from 'node-fetch'
+
 const handler = async (m, { conn }) => {
   const taguser = '@' + m.sender.split('@')[0]; // Obtiene el usuario etiquetado
 
@@ -24,6 +26,7 @@ const handler = async (m, { conn }) => {
     viewOnce: true,
     headerType: 4,
     mentions: [m.sender], // Mención funcional
+    mentionedJid: await conn.parseMention(`You like me? ${taguser}`)
   }, { quoted: m });
 };
 
