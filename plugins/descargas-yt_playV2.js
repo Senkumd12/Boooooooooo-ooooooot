@@ -121,7 +121,7 @@ Tu mamada se está enviando, espérate un rato w`;
     }, { quoted: fkontak });
     } else if (command === 'ytv' || command === 'ytmp4') {
     m.react('🍆')
-      let api = await fetch(`https://apidl.asepharyana.cloud/api/downloader/ytmp4?url=${videoInfo.url}`);
+      let api = await fetch(`https://api-rin-tohsaka.vercel.app/download/ytmp4?url=${videoInfo.url}`);
       let video = await api.json();
       result = video.result.download_url;
     await conn.sendMessage(m.chat, {
