@@ -99,7 +99,7 @@ Tu mamada se está enviando, espérate un rato w`;
           },
         },
         {
-          buttonId: `.ytv ${videoInfo.url}`,
+          buttonId: `.ytmp5 ${videoInfo.url}`,
           buttonText: {
             displayText: 'Video',
           },
