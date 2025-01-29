@@ -1,5 +1,7 @@
 /* 
 
+❀ By JTxs
+
 [ Canal Principal ] :
 https://whatsapp.com/channel/0029VaeQcFXEFeXtNMHk0D0n
 
@@ -13,37 +15,22 @@ https://whatsapp.com/channel/0029VaBfsIwGk1FyaqFcK91S
 https://whatsapp.com/channel/0029Vanjyqb2f3ERifCpGT0W
 */
 
-// *[ ❀ PLAY 2 (video) ]*
+// *[ ❀ YTMP4 ]*
 import fetch from 'node-fetch'
-import yts from 'yt-search'
 
-let handler = async (m, { conn, text, args }) => {
-if (!text) {
-return m.reply("❀ ingresa un texto de lo que quieres buscar")
-}
-    
-let ytres = await search(args.join(" "))
-let txt = `- *Título* : ${ytres[0].title}
-- *Duración* : ${ytres[0].timestamp}
-- *Publicado* : ${ytres[0].ago}
-- *Canal* : ${ytres[0].author.name || 'Desconocido'}
-- *Url* : ${'https://youtu.be/' + ytres[0].videoId}`
-await conn.sendFile(m.chat, ytres[0].image, 'thumbnail.jpg', txt, m, rcanal)
-    
+let HS = async (m, { conn, command, text, usedPrefix }) => {
+if (!text) return conn.reply(m.chat, '❀ ingresa un link de youtube', m)
+//si borras creditos eri gei 👀
 try {
-let api = await fetch(`https://api.giftedtech.my.id/api/download/dlmp4?apikey=gifted&url=${ytres[0].url}`)
+let api = await fetch(`https://api.davidcyriltech.my.id/download/ytmp4?url=${text}`)
 let json = await api.json()
-let { quality, title, download_url } = json.result
-await conn.sendMessage(m.chat, { video: { url: download_url }, caption: `${title}`, mimetype: 'video/mp4', fileName: `${title}` + `.mp4`}, {quoted: m })
+let { title, quality, thumbnail, download_url } = json.result
+await conn.sendMessage(m.chat, { video: { url: download_url }, caption: title }, { quoted: m })
 } catch (error) {
 console.error(error)
 }}
 
-handler.command = /^(play2)$/i
+HS.command = ['ytmp5']
 
-export default handler
-
-async function search(query, options = {}) {
-  let search = await yts.search({ query, hl: "es", gl: "ES", ...options })
-  return search.videos
-}
+export default HS
+//Dejen creditos 👀 [ By Jtxs ] https://whatsapp.com/channel/0029Vanjyqb2f3ERifCpGT0W
