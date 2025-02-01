@@ -105,7 +105,7 @@ Tu mamada se está enviando, espérate un rato w`;
           },
         },
       ],
-      viewOnce: true,
+      viewOnce: false,
       headerType: 4,
     }, { quoted: fkontak });
     m.react('🍆');
