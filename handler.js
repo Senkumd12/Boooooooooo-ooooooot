@@ -996,7 +996,7 @@ if (!('antiThreads' in chat)) chat.antiThreads = false
 if (!('antiTwitch' in chat)) chat.antiTwitch = false
 if (!('antifake' in chat)) chat.antifake = false
 if (!('reaction' in chat)) chat.reaction = false   
-if (!('viewonce' in chat)) chat.viewonce = false       
+if (!('viewonce' in chat)) chat.viewonce = true       
 if (!('modoadmin' in chat)) chat.modoadmin = false  
 if (!('autorespond' in chat)) chat.autorespond = true
 if (!('antitoxic' in chat)) chat.antitoxic = true
@@ -1004,7 +1004,7 @@ if (!('game' in chat)) chat.game = true
 if (!('game2' in chat)) chat.game2 = true
 if (!('simi' in chat)) chat.simi = false
 if (!('antiTraba' in chat)) chat.antiTraba = true
-if (!('autolevelup' in chat))  chat.autolevelup = true
+if (!('autolevelup' in chat))  chat.autolevelup = false
 if (!isNumber(chat.expired)) chat.expired = 0
 } else
 global.db.data.chats[m.chat] = {
@@ -1037,7 +1037,7 @@ antiThreads: false,
 antiTwitch: false,
 antifake: false,
 reaction: false,
-viewonce: false,
+viewonce: true,
 modoadmin: false,
 autorespond: true,
 antitoxic: true,
@@ -1045,7 +1045,7 @@ game: true,
 game2: true, 
 simi: false,
 antiTraba: true,
-autolevelup: true,
+autolevelup: false,
 expired: 0,
 }
 let settings = global.db.data.settings[this.user.jid]

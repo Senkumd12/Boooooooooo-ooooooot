@@ -1,21 +1,44 @@
-import fetch from 'node-fetch'
+import fetch from 'node-fetch';
 
-let handler = async (m, { conn, usedPrefix, command }) => {
-await m.react('🕓')
-try {
-let res = await fetch('https://aemt.me/japan')
-if (!res.ok) return
-let json = await res.json()
-if (!json.url) return
-await conn.sendFile(m.chat, json.url, 'thumbnail.jpg', listo, m)
-await m.react('✅')
-} catch {
-await m.react('✖️')
-}}
-handler.help = ['Japonesa']
-handler.tags = ['img']
-handler.command = ['japonesa']
-//handler.limit = 1
-handler.register = true 
+let handler = async (m, { conn, isGroup }) => {
+    try {
+        // Validar que el comando se use solo en grupos
+        if (!isGroup) {
+            return conn.reply(m.chat, "⚠️ Este comando solo puede utilizarse en grupos.", m);
+        }
 
-export default handler
+        // Reacción inicial para indicar que está procesando
+        await m.react('🕓');
+
+        // Hacer solicitud a la API
+        const res = await fetch('https://deliriussapi-oficial.vercel.app/nsfw/corean');
+        if (!res.ok) throw new Error('Error al conectar con la API');
+
+        const json = await res.json();
+        if (!json.url) throw new Error('No se encontró una imagen válida');
+
+        // Enviar la imagen directamente al chat
+        await conn.sendMessage(m.chat, {
+            image: { url: json.url }, // Enlace directo a la imagen
+            caption: '🔞 Aquí tienes tu contenido NSFW coreano.'
+        }, { quoted: m });
+
+        // Reacción de éxito
+        await m.react('✅');
+    } catch (error) {
+        console.error(error);
+
+        // Reacción de error y mensaje
+        await m.react('✖️');
+        conn.reply(m.chat, "❌ Ocurrió un error al procesar tu solicitud. Inténtalo más tarde.", m);
+    }
+};
+
+// Configuración del comando
+handler.help = ['corean'];
+handler.tags = ['nsfw'];
+handler.command = ['corean']; // Comando principal
+handler.group = true; // Solo disponible en grupos
+handler.register = true; // Requiere registro para usar el comando
+
+export default handler;

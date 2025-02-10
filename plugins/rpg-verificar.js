@@ -52,7 +52,6 @@ fechaBio = biografia[0].setAt ? new Date(biografia[0].setAt).toLocaleDateString(
 ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈`, m, {contextInfo: { externalAdReply :{ mediaUrl: null, mediaType: 1, description: null, title: '✅️  R E G I S T R O  ✅️',  body: '👑 Registro Completado', previewType: 0, thumbnail: imagen1, sourceUrl: canales}}})
 let chtxt = `
 👤 *Usuario* » ${m.pushName || 'Anónimo'}
-🌎 *Pais* » ${mundo}
 🗃 *Verificación* » ${user.name}
 🌺 *Edad* » ${user.age} años
 👀 *Descripción* » ${user.descripcion} 
